@@ -16,6 +16,10 @@ class WhatsAppService {
     this.MAX_RECONNECT_ATTEMPTS = 5;
   }
 
+   getLatestQR() {
+  return this.qr;
+}
+
   resetReconnectAttempts() {
     this.reconnectAttempts = 0;
   }
@@ -93,13 +97,14 @@ class WhatsAppService {
 
       this.sock = makeWASocket({
         auth: state,
-        printQRInTerminal: true,
         browser: ['Baileys REST API', 'Chrome', '1.0.0'],
         logger: pino({ level: 'silent' }),
       });
 
       this.sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection, lastDisconnect,qr } = update;
+
+	if(qr) { this.qr = qr;  }     
 
         if (connection === 'close') {
           // If already connected and trying to reconnect, cancel the operation
@@ -370,6 +375,11 @@ class WhatsAppService {
     if (!this.isConnected) {
       throw new Error('WhatsApp connection is not active');
     }
+
+  async getLatestQR() {
+    return this.qr;
+  }
+
 
     try {
       // Check if the number exists on WhatsApp
