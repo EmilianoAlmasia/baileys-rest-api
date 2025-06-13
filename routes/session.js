@@ -19,6 +19,19 @@ async function generateQRBase64(text) {
   }
 }
 
+/**
+ * @swagger
+ * /session/start:
+ *   post:
+ *     summary: Inicia una nueva sesión de WhatsApp y genera un QR
+ *     tags:
+ *       - Session
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Devuelve el estado de la sesión y el QR en base64 si corresponde
+ */
 router.post('/start', verifyToken, async (req, res) => {
   try {
     const result = await WhatsAppService.initialize();
@@ -43,6 +56,19 @@ router.post('/start', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /session/status:
+ *   get:
+ *     summary: Verifica el estado actual de la sesión de WhatsApp
+ *     tags:
+ *       - Session
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Devuelve el estado de conexión actual, y QR si está esperando
+ */
 router.get('/status', verifyToken, async (req, res) => {
   try {
     const status = WhatsAppService.getConnectionStatus();
@@ -60,6 +86,19 @@ router.get('/status', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /session/logout:
+ *   post:
+ *     summary: Cierra la sesión de WhatsApp
+ *     tags:
+ *       - Session
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Resultado del cierre de sesión
+ */
 router.post('/logout', verifyToken, async (req, res) => {
   try {
     const result = await WhatsAppService.logout();
@@ -74,3 +113,4 @@ router.post('/logout', verifyToken, async (req, res) => {
 });
 
 module.exports = router;
+
