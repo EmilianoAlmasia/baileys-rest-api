@@ -37,6 +37,8 @@ app.use(cors(corsOptions));
 // Routes
 app.use('/session', require('./routes/session'));
 app.use('/message', require('./routes/message'));
+app.use('/auth', require('./routes/auth'));
+
 
 // 404
 // app.use((req, res) => { res.status(404).send(null); });
