@@ -371,14 +371,16 @@ class WhatsAppService {
     }
   }
 
+
+getLatestQR() {
+  return this.qr;
+}
+
   async checkNumber(phoneNumber) {
     if (!this.isConnected) {
       throw new Error('WhatsApp connection is not active');
     }
 
-  getLatestQR() {
-    return this.qr;
-  }
 
 
     try {
