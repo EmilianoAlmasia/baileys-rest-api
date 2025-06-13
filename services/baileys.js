@@ -376,7 +376,7 @@ class WhatsAppService {
       throw new Error('WhatsApp connection is not active');
     }
 
-  async getLatestQR() {
+  getLatestQR() {
     return this.qr;
   }
 
