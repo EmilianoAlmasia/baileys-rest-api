@@ -72,6 +72,14 @@ router.post('/start', verifyToken, async (req, res) => {
 router.get('/status', verifyToken, async (req, res) => {
   try {
     const status = WhatsAppService.getConnectionStatus();
+        const qr = WhatsAppService.getLatestQR();
+
+    if (qr) {
+      const qrBase64 = await generateQRBase64(qr);
+      status.qr = qr;
+      status.qrBase64 = qrBase64;
+    }
+
 
     if (status.qr) {
       status.qrBase64 = await generateQRBase64(status.qr);
