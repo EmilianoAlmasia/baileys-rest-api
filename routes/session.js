@@ -6,6 +6,9 @@ const router = express.Router();
 const verifyToken = require('../middlewares/verifyToken');
 const WhatsAppService = require('../services/baileys');
 
+console.log('WhatsAppService methods:', Object.keys(WhatsAppService));
+
+
 async function generateQRBase64(text) {
   try {
     return await QRCode.toDataURL(text, {
