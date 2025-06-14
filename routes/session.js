@@ -120,5 +120,80 @@ router.post('/logout', verifyToken, async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /session/mensajes/recibidos:
+ *   get:
+ *     summary: Devuelve los mensajes recibidos desde WhatsApp almacenados en memoria
+ *     tags:
+ *       - Session
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de mensajes recibidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensajes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       from:
+ *                         type: string
+ *                       fromMe:
+ *                         type: boolean
+ *                       timestamp:
+ *                         type: number
+ *                       type:
+ *                         type: string
+ *                       pushName:
+ *                         type: string
+ *                       content:
+ *                         type: object
+ */
+router.get('/mensajes/recibidos', verifyToken, (req, res) => {
+  const mensajes = WhatsAppService.getReceivedMessages();
+  res.sendResponse(200, { mensajes });
+});
+
+/**
+ * @swagger
+ * /session/mensajes/recibidos:
+ *   delete:
+ *     summary: Elimina los mensajes en memoria
+ *     tags:
+ *       - Session
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Confirmación de que los mensajes fueron eliminados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ */
+router.delete('/mensajes/recibidos', verifyToken, (req, res) => {
+  WhatsAppService.clearReceivedMessages();
+  res.sendResponse(200, {
+    success: true,
+    message: 'Mensajes eliminados de memoria',
+  });
+});
+
+
+
 module.exports = router;
 
