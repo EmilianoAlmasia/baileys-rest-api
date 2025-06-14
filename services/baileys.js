@@ -14,6 +14,7 @@ class WhatsAppService {
     this.connectionUpdateHandler = null;
     this.reconnectAttempts = 0;
     this.MAX_RECONNECT_ATTEMPTS = 5;
+ this.receivedMessages = [];
   }
 
    getLatestQR() {
@@ -167,6 +168,8 @@ class WhatsAppService {
                 msg: 'Processed message info',
                 data: messageInfo,
               });
+
+              this.receivedMessages.push(messageInfo);
 
               // Send to webhook
               await WhatsAppService.notifyWebhook('message.received', messageInfo);
@@ -372,6 +375,14 @@ class WhatsAppService {
   }
 
 
+getReceivedMessages() {
+  return this.receivedMessages;
+}
+
+clearReceivedMessages() {
+  this.receivedMessages = [];
+}
+
 getLatestQR() {
   return this.qr;
 }
@@ -496,4 +507,4 @@ getLatestQR() {
   }
 }
 
-module.exports = new WhatsAppService();
+ module.exports = new WhatsAppService();
