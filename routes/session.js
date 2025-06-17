@@ -205,7 +205,7 @@ router.get('/mensajes/audio/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const { stream, mimetype } = await WhatsappService.getAudioStreamById(id);
+    const { stream, mimetype } = await WhatsAppService.getAudioStreamById(id);
 
     res.setHeader('Content-Type', mimetype);
     res.setHeader('Content-Disposition', `inline; filename="${id}.ogg"`); // O .mp3 según el caso

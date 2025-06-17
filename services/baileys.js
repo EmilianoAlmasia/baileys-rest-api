@@ -5,7 +5,6 @@ const pino = require('pino');
 const fs = require('fs').promises;
 const { logger, errorLogger } = require('../utils/logger');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
-const { makeInMemoryStore } = require('@whiskeysockets/baileys');
 
 
 class WhatsAppService {
@@ -18,7 +17,6 @@ class WhatsAppService {
     this.reconnectAttempts = 0;
     this.MAX_RECONNECT_ATTEMPTS = 5;
     this.receivedMessages = [];
-    this.store = makeInMemoryStore({ logger: pino({ level: 'silent' }) });
 
   }
 
@@ -105,11 +103,8 @@ class WhatsAppService {
         auth: state,
         browser: ['Baileys REST API', 'Chrome', '1.0.0'],
         logger: pino({ level: 'silent' }),
-	store: this.store,
       });
 
-      this.sock.store = this.store;     
-      this.store.bind(this.sock.ev);
 
       this.sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect,qr } = update;
@@ -179,7 +174,10 @@ class WhatsAppService {
                 data: messageInfo,
               });
 
-              this.receivedMessages.push(messageInfo);
+              this.receivedMessages.push({
+                ...messageInfo,
+               raw: msg // guardás el mensaje completo
+               });
 
               // Send to webhook
               await WhatsAppService.notifyWebhook('message.received', messageInfo);
@@ -404,13 +402,9 @@ async getAudioStreamById(id) {
     throw new Error('Mensaje de audio no encontrado');
   }
 
-  const fullMessage = await this.sock?.store?.loadMessage(messageMeta.chatId, id);
-  if (!fullMessage) {
-    throw new Error('No se pudo cargar el mensaje completo desde store');
-  }
 
-  const stream = await downloadMediaMessage(fullMessage, 'stream', {});
-  const mimetype = fullMessage.message.audioMessage.mimetype;
+  const stream = await downloadMediaMessage( messageMeta.raw , 'stream', {});
+  const mimetype = messageMeta.raw.message.audioMessage.mimetype;
 
   return { stream, mimetype };
 }
