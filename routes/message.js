@@ -7,7 +7,8 @@ const validator = require('../middlewares/validator');
 const WhatsAppService = require('../services/baileys');
 const { sendText, checkNumber } = require('../validators/message');
 
-
+const multer = require('multer');
+const upload = multer(); // Para manejar multipart/form-data
 
 
 /**
@@ -48,6 +49,113 @@ router.post('/check-number', verifyToken, validator(checkNumber), async (req, re
   }
 });
 
+
+
+/**
+ * @swagger
+ * /session/enviar-audio-base64:
+ *   post:
+ *     summary: Enviar audio a un número de WhatsApp usando base64
+ *     tags:
+ *       - Mensajes
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - to
+ *               - base64
+ *             properties:
+ *               to:
+ *                 type: string
+ *                 description: Número de WhatsApp con o sin @s.whatsapp.net
+ *                 example: 5491122334455
+ *               base64:
+ *                 type: string
+ *                 description: Audio codificado en base64
+ *               mimetype:
+ *                 type: string
+ *                 example: audio/ogg
+ *     responses:
+ *       200:
+ *         description: Audio enviado correctamente
+ */
+router.post('/enviar-audio-base64', verifyToken, async (req, res) => {
+  try {
+    let { to, base64, mimetype } = req.body;
+
+    if (!to || !base64) {
+      return res.sendError(400, 'Faltan campos requeridos: to, base64');
+    }
+
+    if (!to.includes('@')) {
+      to += '@s.whatsapp.net';
+    }
+
+    const buffer = Buffer.from(base64, 'base64');
+    await WhatsAppService.enviarAudio(to, buffer, mimetype || 'audio/ogg');
+
+    res.sendResponse(200, { success: true, message: 'Audio enviado' });
+  } catch (error) {
+    res.sendError(500, error);
+  }
+});
+
+/**
+ * @swagger
+ * /session/enviar-audio-file:
+ *   post:
+ *     summary: Enviar audio a un número de WhatsApp usando archivo .ogg
+ *     tags:
+ *       - Mensajes
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - to
+ *               - file
+ *             properties:
+ *               to:
+ *                 type: string
+ *                 description: Número de WhatsApp con o sin @s.whatsapp.net
+ *                 example: 5491122334455
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Audio enviado correctamente
+ */
+router.post('/enviar-audio-file', verifyToken, upload.single('file'), async (req, res) => {
+  try {
+    let { to } = req.body;
+    const audioBuffer = req.file?.buffer;
+    const mimetype = req.file?.mimetype;
+
+    if (!to || !audioBuffer) {
+      return res.sendError(400, 'Faltan campos requeridos: to, file');
+    }
+
+    if (!to.includes('@')) {
+      to += '@s.whatsapp.net';
+    }
+
+    await WhatsAppService.enviarAudio(to, audioBuffer, mimetype || 'audio/ogg');
+
+    res.sendResponse(200, { success: true, message: 'Audio enviado' });
+  } catch (error) {
+    res.sendError(500, error);
+  }
+});
 
 
 

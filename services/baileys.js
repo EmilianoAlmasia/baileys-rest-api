@@ -410,6 +410,22 @@ async getAudioStreamById(id) {
 }
 
 
+async enviarAudio(to, buffer, mimetype = 'audio/ogg') {
+  if (!this.sock) {
+    throw new Error('Socket no inicializado');
+  }
+
+  await this.sock.sendMessage(to, {
+    audio: buffer,
+    mimetype,
+    ptt: true // tipo "nota de voz"
+  });
+}
+
+
+
+
+
 
   async checkNumber(phoneNumber) {
     if (!this.isConnected) {
