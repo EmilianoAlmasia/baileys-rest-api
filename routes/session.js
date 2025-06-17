@@ -166,6 +166,63 @@ router.get('/mensajes/recibidos', verifyToken, (req, res) => {
   res.sendResponse(200, { mensajes });
 });
 
+
+/**
+ * @swagger
+ * /session/mensajes/audio/{id}:
+ *   get:
+ *     summary: Obtener stream de audio recibido por WhatsApp
+ *     description: Retorna el audio como un stream, útil para reproducir directamente desde el navegador o descargar.
+ *     tags:
+ *       - Mensajes
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del mensaje de audio recibido (proveniente de mensajes/recibidos)
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Stream de audio devuelto correctamente
+ *         content:
+ *           audio/ogg:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *           audio/mpeg:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: No se encontró el mensaje de audio
+ *       500:
+ *         description: Error interno al intentar recuperar el audio
+ */
+router.get('/mensajes/audio/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { stream, mimetype } = await whatsappService.getAudioStreamById(id);
+
+    res.setHeader('Content-Type', mimetype);
+    res.setHeader('Content-Disposition', `inline; filename="${id}.ogg"`); // O .mp3 según el caso
+    stream.pipe(res);
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: error.message || 'Audio no encontrado',
+    });
+  }
+});
+
+
+
+
+
+
 /**
  * @swagger
  * /session/mensajes/recibidos:
