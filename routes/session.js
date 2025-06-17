@@ -205,7 +205,7 @@ router.get('/mensajes/audio/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const { stream, mimetype } = await whatsappService.getAudioStreamById(id);
+    const { stream, mimetype } = await WhatsappService.getAudioStreamById(id);
 
     res.setHeader('Content-Type', mimetype);
     res.setHeader('Content-Disposition', `inline; filename="${id}.ogg"`); // O .mp3 según el caso
@@ -218,6 +218,75 @@ router.get('/mensajes/audio/:id', async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /session/mensajes/audio/{id}/base64:
+ *   get:
+ *     summary: Obtener el contenido del mensaje de audio en base64
+ *     description: Devuelve el audio recibido codificado en base64 junto con su mimetype.
+ *     tags:
+ *       - Mensajes
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del mensaje de audio recibido (proveniente de mensajes/recibidos)
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Audio codificado en base64
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 id:
+ *                   type: string
+ *                 mimetype:
+ *                   type: string
+ *                 base64:
+ *                   type: string
+ *       404:
+ *         description: No se encontró el mensaje de audio
+ *       500:
+ *         description: Error interno al recuperar el audio
+ */
+router.get('/mensajes/audio/:id/base64', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { stream, mimetype } = await WhatsAppService.getAudioStreamById(id);
+
+    const chunks = [];
+    stream.on('data', chunk => chunks.push(chunk));
+    stream.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      const base64 = buffer.toString('base64');
+
+      res.sendResponse(200, {
+        success: true,
+        id,
+        mimetype,
+        base64,
+      });
+    });
+    stream.on('error', err => {
+      res.sendError(500, err);
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: error.message || 'Audio no encontrado',
+    });
+  }
+});
 
 
 
