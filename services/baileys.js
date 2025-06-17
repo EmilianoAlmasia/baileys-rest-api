@@ -5,7 +5,7 @@ const pino = require('pino');
 const fs = require('fs').promises;
 const { logger, errorLogger } = require('../utils/logger');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
-const { makeInMemoryStore } = require('@whiskeysockets/baileys')
+const { makeInMemoryStore } = require('@whiskeysockets/baileys/lib/store');
 
 
 class WhatsAppService {
