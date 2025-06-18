@@ -131,6 +131,7 @@ router.post('/enviar-audio-base64', verifyToken, async (req, res) => {
  *               file:
  *                 type: string
  *                 format: binary
+ *                 description: Archivo de audio en formato `.ogg`
  *     responses:
  *       200:
  *         description: Audio enviado correctamente
@@ -139,11 +140,22 @@ router.post('/enviar-audio-file', verifyToken, upload.single('file'), async (req
   try {
     let { to } = req.body;
     const audioBuffer = req.file?.buffer;
-    const mimetype = req.file?.mimetype;
+    const mimetype = req.file?.mimetype?.includes('audio/ogg')? 'audio/ogg; codecs=opus': req.file?.mimetype;
+
 
     if (!to || !audioBuffer) {
       return res.sendError(400, 'Faltan campos requeridos: to, file');
     }
+
+
+    console.log({
+      archivo: req.file?.originalname,
+      tipo: mimetype,
+      tamaño: req.file?.size,
+      bufferValido: audioBuffer?.length > 1000,
+    });
+
+
 
     if (!to.includes('@')) {
       to += '@s.whatsapp.net';
