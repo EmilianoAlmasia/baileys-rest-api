@@ -53,7 +53,7 @@ router.post('/check-number', verifyToken, validator(checkNumber), async (req, re
 
 /**
  * @swagger
- * /session/enviar-audio-base64:
+ * /message/enviar-audio-base64:
  *   post:
  *     summary: Enviar audio a un número de WhatsApp usando base64
  *     tags:
@@ -107,7 +107,7 @@ router.post('/enviar-audio-base64', verifyToken, async (req, res) => {
 
 /**
  * @swagger
- * /session/enviar-audio-file:
+ * /message/enviar-audio-file:
  *   post:
  *     summary: Enviar audio a un número de WhatsApp usando archivo .ogg
  *     tags:
