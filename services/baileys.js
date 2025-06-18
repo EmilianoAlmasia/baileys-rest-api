@@ -28,7 +28,7 @@ class WhatsAppService {
     this.reconnectAttempts = 0;
   }
 
-  async waitForQR(timeout = 60000) {
+  async waitForQR(timeout = 30000) {
     return new Promise((resolve) => {
       let timeoutId = null;
 
@@ -423,6 +423,34 @@ async enviarAudio(to, buffer, mimetype = 'audio/ogg') {
 }
 
 
+
+  /**
+   * Inactiva la sesión sin cerrar credenciales (simula desconexión “dormida”)
+   */
+  async sleepSession() {
+    if (!this.sock) throw new Error('Socket no inicializado');
+    await this.sock.end('normal'); // cierra la conexión websocket sin eliminar credenciales
+    this.isConnected = false;
+    await WhatsAppService.notifyWebhook('connection', { status: 'sleep' });
+    return { success: true, status: 'sleep' };
+  }
+
+
+  /**
+   * Reactiva la sesión leyendo credenciales y reconectando
+   */
+  async wakeSession() {
+    if (this.isConnected) return { success: true, status: 'connected' };
+    return this.initialize(true);
+  }
+
+
+  /**
+   * Devuelve estado actual de la sesión
+   */
+  sessionStatus() {
+    return { isConnected: this.isConnected, qr: this.qr };
+  }
 
 
 

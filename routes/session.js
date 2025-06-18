@@ -37,7 +37,10 @@ async function generateQRBase64(text) {
  */
 router.post('/start', verifyToken, async (req, res) => {
   try {
-    const result = await WhatsAppService.initialize();
+    //const result = await WhatsAppService.initialize();
+	 
+    
+     const result = await WhatsAppService.initialize(false);
 
     if (!result.success) {
       res.sendError(500, result);
@@ -96,6 +99,62 @@ router.get('/status', verifyToken, async (req, res) => {
     res.sendError(500, error);
   }
 });
+
+
+
+/**
+ * @swagger
+ * /session/statusDirect:
+ *   get:
+ *     summary: Devuelve el estado actual de la sesión
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/statusDirect', verifyToken, async (req, res) => {
+  const status = WhatsAppService.sessionStatus();
+  res.sendResponse(200, status);
+});
+
+
+
+/**
+ * @swagger
+ * /session/sleep:
+ *   post:
+ *     summary: Inactiva (duerme) la sesión, como desconexión en WhatsApp Web
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/sleep', verifyToken, async (req, res) => {
+  try {
+    const result = await WhatsAppService.sleepSession();
+    res.sendResponse(200, result);
+  } catch (err) {
+    res.sendError(500, err);
+  }
+});
+
+
+/**
+ * @swagger
+ * /session/wake:
+ *   post:
+ *     summary: Reactiva la sesión si está dormida
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/wake', verifyToken, async (req, res) => {
+  try {
+    const result = await WhatsAppService.wakeSession();
+    res.sendResponse(200, result);
+  } catch (err) {
+    res.sendError(500, err);
+  }
+});
+
+
+
+
 
 /**
  * @swagger
