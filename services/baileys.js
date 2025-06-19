@@ -168,12 +168,19 @@ class WhatsAppService {
 		chatId: msg.key.remoteJid,
               };
 
+
+
+
+
               // Debug log for processed message
               logger.debug({
                 msg: 'Processed message info',
                 data: messageInfo,
               });
 
+
+
+               /*
               this.receivedMessages.push({
                 ...messageInfo,
                raw: msg // guardás el mensaje completo
@@ -181,6 +188,28 @@ class WhatsAppService {
 
               // Send to webhook
               await WhatsAppService.notifyWebhook('message.received', messageInfo);
+               */
+
+        const messageType = Object.keys(msg.message || {})[0];
+
+        const isAudio = messageType === 'audioMessage';
+
+        const internalMessage = {
+          ...messageInfo,
+          ...(isAudio && { raw: msg })
+        };
+
+        this.receivedMessages.push(internalMessage);
+
+        // Si es audio, también se le envía raw al webhook
+        const webhookPayload = isAudio
+          ? { ...messageInfo, raw: msg }
+          : messageInfo;
+
+        await WhatsAppService.notifyWebhook('message.received', webhookPayload);
+
+		    
+
               logger.info({
                 msg: 'New message processed',
                 messageId: messageInfo.id,
@@ -219,6 +248,10 @@ class WhatsAppService {
 
       // If connection is successful
       if (this.isConnected) {
+
+	      this.startSessionMonitor(); // inicia el keep-alive + autoreconexión
+
+
         return {
           success: true,
           status: 'connected',
@@ -352,6 +385,27 @@ class WhatsAppService {
       });
     }
   }
+
+
+startSessionMonitor(interval = 60000) {
+  setInterval(async () => {
+    if (!this.sock) return;
+
+    const state = this.sock?.ws?.readyState;
+    if (state !== 1) { // 1 = WebSocket.OPEN
+      logger.warn('WebSocket not open. Trying to wake session...');
+      await this.wakeSession();
+    } else {
+      logger.debug('Sending presence update to keep session alive...');
+      try {
+        await this.sock.sendPresenceUpdate('available');
+      } catch (err) {
+        logger.warn('Failed to send presence update', err.message);
+      }
+    }
+  }, interval);
+}
+
 
   getConnectionStatus() {
     return {
